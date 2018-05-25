@@ -8,10 +8,9 @@
 #include <utility>
 
 using boost::asio::ip::tcp;
-using chat_message = std::vector<std::string>;
-using command_queue = std::deque<chat_message>;
-class session;
+using command_queue = std::deque<std::string>;
 
+class session;
 class database_room
 {
     using session_ptr = std::shared_ptr<session>;
@@ -21,15 +20,28 @@ public:
     database_room(){}
 
     void leave(session_ptr participant){
-        participants_.erase(participant);
+        participants.erase(participant);
     }
 
     void join(session_ptr participant){
-        participants_.emplace(participant);
+        participants.emplace(participant);
     }
 
+    void deliver(std::string& msg );
+
+    bool simple_parser(std::string& msg){
+        boost::tokenizer<boost::char_separator<char>> tokenizer{msg, boost::char_separator<char>{" "}};
+        auto i = find(commands.begin(), commands.end(),*tokenizer.begin());
+        if(i != commands.end()){
+            return true;
+        }
+        else return false;
+     }
+
 private:
-    std::set<session_ptr> participants_;
+    std::vector<std::string> commands{"INSERT", "TRUNCATE", "INTERSECTION", "SYMMETRIC_DIFFERENCE"};
+    std::set<session_ptr> participants;
+    command_queue recent_msgs_;
 
 };
 
@@ -40,14 +52,21 @@ public:
     {
     }
 
-    void run()
-    {
+    void run(){
         room.join(shared_from_this());
         do_read();
     }
 
-    void do_read()
-    {
+    void deliver(const std::string& msg){
+        bool write_in_progress = !responses.empty();
+        responses.push_back(msg);
+        if (!write_in_progress)
+        {
+            do_write();
+        }
+    }
+
+    void do_read(){
        auto self(shared_from_this());
        boost::asio::async_read_until(socket_,
            sb, '\n',
@@ -71,8 +90,8 @@ public:
 
              if (!ec && !bicycle)
              {
-                if(proverka(line)) do_write("OK\n");
-                else do_write("ERR\n");
+                room.deliver(line);
+                do_read();
              }
              else{
                  if(ec.value() == 2 || bicycle) {
@@ -82,34 +101,48 @@ public:
            });
      }
 
-     void do_write(std::string answer_)
-     {
+     void do_write(){
          auto self(shared_from_this());
          boost::asio::async_write(socket_,
-         boost::asio::buffer(answer_, 4),
+         boost::asio::buffer(responses.front(), 6),
          [this, self](boost::system::error_code ec, std::size_t )
          {
              if (!ec)
              {
-                do_read();
+                responses.pop_front();
+                if (!responses.empty())
+                {
+                  do_write();
+                }
              }
          });
-   }
+     }
 
-   bool proverka(std::string& msg){
-       boost::tokenizer<boost::char_separator<char>> tokenizer{msg, boost::char_separator<char>{" "}};
-       auto i = find(commands.begin(), commands.end(),*tokenizer.begin());
-       if(i != commands.end()) return true;
-       else return false;
-    }
 
 
 private:
-    std::vector<std::string> commands{"INSERT", "TRUNCATE", "INTERSECTION", "SYMMETRIC_DIFFERENCE"};
     tcp::socket socket_;
     boost::asio::streambuf sb;
     database_room& room;
+    command_queue responses;
 };
+
+
+void database_room::deliver(std::string& msg ){
+
+    if(simple_parser(msg)){
+        recent_msgs_.push_back("OK\n");
+        for(auto participant: participants){
+            participant->deliver("OK\n");
+        }
+    }
+    else{
+        recent_msgs_.push_back("ERR\n");
+        for(auto participant: participants){
+            participant->deliver("ERR\n");}
+        }
+
+}
 
 
 class server
@@ -129,12 +162,10 @@ private:
         acceptor_.async_accept(socket_,
             [this](boost::system::error_code ec)
             {
-            if (!ec)
-            {
-                std::make_shared<session>(std::move(socket_), room)->run();
+                if (!ec) std::make_shared<session>(std::move(socket_), room)->run();
+                do_accept();
             }
-            do_accept();
-        });
+        );
     }
     tcp::acceptor acceptor_;
     tcp::socket socket_;
