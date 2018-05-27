@@ -9,7 +9,7 @@
 #include "tablemanager.h"
 
 using boost::asio::ip::tcp;
-using command_queue = std::deque<std::string>;
+using responses_queue = std::deque<std::string>;
 
 class session;
 class database_room
@@ -33,7 +33,7 @@ public:
 private:
 
     std::set<session_ptr> participants;
-    command_queue recent_msgs_;
+    responses_queue recent_msgs_;
     TableManager tm;
 
 };
@@ -53,8 +53,7 @@ public:
     void deliver(const std::string& msg){
         bool write_in_progress = !responses.empty();
         responses.push_back(msg);
-        if (!write_in_progress)
-        {
+        if (!write_in_progress){
             do_write();
         }
     }
@@ -71,7 +70,6 @@ public:
 
              boost::asio::streambuf::const_buffers_type constBuffer = sb.data();
 
-
              std::copy(
                  boost::asio::buffers_begin(constBuffer),
                  boost::asio::buffers_begin(constBuffer) + byte,
@@ -82,9 +80,7 @@ public:
              sb.consume(byte);
 
              auto bicycle = std::all_of(line.begin(), line.end(), [](char c){return c == '\0';});
-             //td::cout<<line<<"| "<<bicycle<<" |";
-             if (!ec && !bicycle)
-             {
+             if (!ec && !bicycle){
                 room.deliver(line);
                 do_read();
              }
@@ -100,13 +96,11 @@ public:
          auto self(shared_from_this());
          boost::asio::async_write(socket_,
          boost::asio::buffer(responses.front(), responses.front().size()),
-         [this, self](boost::system::error_code ec, std::size_t )
-         {
+         [this, self](boost::system::error_code ec, std::size_t ){
              if (!ec)
              {
                 responses.pop_front();
-                if (!responses.empty())
-                {
+                if (!responses.empty()){
                   do_write();
                 }
              }
@@ -123,11 +117,11 @@ private:
 };
 
 
-void database_room::deliver(std::string& msg ){
-    std::string rrrr = tm.parsing(msg);
-    recent_msgs_.push_back(rrrr);
+void database_room::deliver(std::string& msg){
+    std::string response = tm.parsing(msg);
+    recent_msgs_.push_back(response);
     for(auto participant: participants)
-        participant->deliver(rrrr);
+        participant->deliver(response);
 }
 
 
@@ -143,8 +137,7 @@ public:
     }
 
 private:
-    void do_accept()
-    {
+    void do_accept(){
         acceptor_.async_accept(socket_,
             [this](boost::system::error_code ec)
             {

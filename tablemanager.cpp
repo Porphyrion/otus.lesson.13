@@ -8,7 +8,7 @@ TableManager::TableManager(){
 std::string TableManager::parsing(std::string& msg){
     std::vector<std::string> tokens;
     boost::split(tokens, msg, boost::is_any_of(std::set<char>{' ', '\n'}));
-    std::string response = "ER\n";
+    std::string response = "ERR\n";
 
     auto i = find(commands.begin(), commands.end(), *tokens.begin());
     if(i != commands.end()){
@@ -26,11 +26,11 @@ std::string TableManager::parsing(std::string& msg){
 };
 
 std::string TableManager::insert(std::vector<std::string> line){
-    if(line.size() < 4) return std::string("ERR\n");
-    if(tables.find(line[1]) == tables.end())  return std::string("ERR\n");
+    if(line.size() < 4) return "ERR\n";
+    if(tables.find(line[1]) == tables.end())  return "ERR\n";
 
     tables[line[1]].emplace(std::stoi(line[2]), line[3]);
-    return std::string("OK\n");
+    return "OK\n";
 };
 
 std::string TableManager::intersection(){
@@ -70,7 +70,6 @@ std::string TableManager::symmetric_difference(){
         }
     }
     std::copy(first2, last2, d_first);
-
 
     for(auto i : v_symDifference){
         response.append(std::to_string(i.first)+","+i.second + ",\n");
