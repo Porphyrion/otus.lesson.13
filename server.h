@@ -107,13 +107,11 @@ public:
          });
      }
 
-
-
 private:
     tcp::socket socket_;
     boost::asio::streambuf sb;
     database_room& room;
-    command_queue responses;
+    responses_queue responses;
 };
 
 
