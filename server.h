@@ -6,6 +6,7 @@
 #include <set>
 #include <deque>
 #include <utility>
+#include "tablemanager.h"
 
 using boost::asio::ip::tcp;
 using command_queue = std::deque<std::string>;
@@ -29,19 +30,11 @@ public:
 
     void deliver(std::string& msg );
 
-    bool simple_parser(std::string& msg){
-        boost::tokenizer<boost::char_separator<char>> tokenizer{msg, boost::char_separator<char>{" "}};
-        auto i = find(commands.begin(), commands.end(),*tokenizer.begin());
-        if(i != commands.end()){
-            return true;
-        }
-        else return false;
-     }
-
 private:
-    std::vector<std::string> commands{"INSERT", "TRUNCATE", "INTERSECTION", "SYMMETRIC_DIFFERENCE"};
+
     std::set<session_ptr> participants;
     command_queue recent_msgs_;
+    TableManager tm;
 
 };
 
@@ -84,10 +77,12 @@ public:
                  boost::asio::buffers_begin(constBuffer) + byte,
                  std::ostream_iterator<char>(ss)
              );
+
              line = ss.str();
              sb.consume(byte);
-             auto bicycle = std::all_of(line.begin(), line.end(), [](char c){return c == '\0';});
 
+             auto bicycle = std::all_of(line.begin(), line.end(), [](char c){return c == '\0';});
+             //td::cout<<line<<"| "<<bicycle<<" |";
              if (!ec && !bicycle)
              {
                 room.deliver(line);
@@ -104,7 +99,7 @@ public:
      void do_write(){
          auto self(shared_from_this());
          boost::asio::async_write(socket_,
-         boost::asio::buffer(responses.front(), 6),
+         boost::asio::buffer(responses.front(), responses.front().size()),
          [this, self](boost::system::error_code ec, std::size_t )
          {
              if (!ec)
@@ -129,19 +124,10 @@ private:
 
 
 void database_room::deliver(std::string& msg ){
-
-    if(simple_parser(msg)){
-        recent_msgs_.push_back("OK\n");
-        for(auto participant: participants){
-            participant->deliver("OK\n");
-        }
-    }
-    else{
-        recent_msgs_.push_back("ERR\n");
-        for(auto participant: participants){
-            participant->deliver("ERR\n");}
-        }
-
+    std::string rrrr = tm.parsing(msg);
+    recent_msgs_.push_back(rrrr);
+    for(auto participant: participants)
+        participant->deliver(rrrr);
 }
 
 
