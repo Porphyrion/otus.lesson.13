@@ -15,7 +15,7 @@ std::string TableManager::parsing(std::string& msg){
         if(*i == commands[0]){
             response = insert(tokens);
         }else if (*i == commands[1]) {
-            response = truncate(tokens[1]);
+            response = truncate(tokens);
         }else if (*i == commands[2]){
             response = intersection();
         } else if (*i == commands[3]) {
@@ -34,6 +34,7 @@ std::string TableManager::insert(std::vector<std::string> line){
 };
 
 std::string TableManager::intersection(){
+    if(tables.find("A") == tables.end() || tables.find("B") == tables.end()) return "ERR\n";
     std::string response = "";
     for(auto& i : tables["A"]){
         for(auto& j : tables["B"]){
@@ -48,6 +49,7 @@ std::string TableManager::intersection(){
 };
 
 std::string TableManager::symmetric_difference(){
+    if(tables.find("A") == tables.end() || tables.find("B") == tables.end()) return "ERR\n";
     std::string response = "";
     std::vector<std::pair<int, std::string>> v_symDifference;
     auto d_first = std::back_inserter(v_symDifference);
@@ -78,7 +80,11 @@ std::string TableManager::symmetric_difference(){
     return response;
 };
 
-std::string TableManager::truncate(std::string table_name){
-    tables.erase(table_name);
-    return "OK\n";
+std::string TableManager::truncate(std::vector<std::string> tokens){
+    std::string response;
+    if(tokens.size() != 2) return "ERR\n";
+    if(tables.find(tokens[1]) != tables.end()){
+        tables.erase(tokens[2]);
+        return "OK\n";
+    } else return "ERR\n";
 };

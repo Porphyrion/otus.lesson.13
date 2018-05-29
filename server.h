@@ -35,7 +35,6 @@ private:
     std::set<session_ptr> participants;
     responses_queue recent_msgs_;
     TableManager tm;
-
 };
 
 class session : public std::enable_shared_from_this<session>{

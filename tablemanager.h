@@ -14,9 +14,10 @@ public:
     std::string parsing(std::string& msg);
 
     std::string insert(std::vector<std::string>);
-    std::string truncate(std::string table_name);
+    std::string truncate(std::vector<std::string>);
     std::string intersection();
     std::string symmetric_difference();
+
 
 private:
     std::vector<std::string> commands{"INSERT", "TRUNCATE", "INTERSECTION", "SYMMETRIC_DIFFERENCE"};
