@@ -24,13 +24,13 @@ std::string TableManager::processing(std::vector<std::string> line){
     }else if (*i == commands[1]) {
         if(line.size() < 2 ) return er.message(Error::types::few_arguments);
         if(tables.find(line[1]) == tables.end())  return er.message(Error::types::table_not_found);
-        response = truncate(line);
+        response = truncate(line[1]);
     }else if (*i == commands[2]){
         if(findTables()) response = intersection();
-        else er.message(Error::types::table_not_found);
+        else response = er.message(Error::types::table_not_found);
     } else if (*i == commands[3]) {
         if(findTables()) response = symmetric_difference();
-        else er.message(Error::types::table_not_found);
+        else response = er.message(Error::types::table_not_found);
     }
     return response;
 };
@@ -85,12 +85,9 @@ std::string TableManager::symmetric_difference(){
     return response;
 };
 
-std::string TableManager::truncate(std::vector<std::string> tokens){
-    if(tokens.size() != 2) return er.message(Error::types::few_arguments);
-    if(tables.find(tokens[1]) != tables.end()){
-        tables.erase(tokens[2]);
+std::string TableManager::truncate(std::string tableName){
+        tables.erase(tableName);
         return "OK\n";
-    } else return er.message(Error::types::table_not_found);
 };
 
 bool TableManager::findTables(){
