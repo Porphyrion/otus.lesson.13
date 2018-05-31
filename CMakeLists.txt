@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-project(join_server VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
+project(join_server) #VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
 
 find_package(Boost COMPONENTS system REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
@@ -9,7 +9,7 @@ add_library(tablemanager tablemanager.cpp)
 add_executable(join_server main.cpp)
 
 set_target_properties(join_server tablemanager PROPERTIES
-        CXX_STANDARD 17
+        CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
         # COMPILE_DEFINITIONS BOOST_ASIO_ENABLE_HANDLER_TRACKING
         COMPILE_OPTIONS "-Wpedantic;-Wall;-Wextra"

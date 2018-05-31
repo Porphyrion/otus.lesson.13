@@ -2,11 +2,12 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include "server.h"
+//#include "table.h"
 
 int main(int argc, char const *argv[]) {
     if (argc < 2)
     {
-        std::cerr << "Usage: chat_server <port> <bulk_size>\n";
+        std::cerr << "Usage: join_server <port>\n";
         return 1;
     }
     boost::asio::io_service io_service;

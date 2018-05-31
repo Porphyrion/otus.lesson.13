@@ -69,10 +69,11 @@ public:
 
              boost::asio::streambuf::const_buffers_type constBuffer = sb.data();
 
-             std::copy(
+             std::copy_if(
                  boost::asio::buffers_begin(constBuffer),
                  boost::asio::buffers_begin(constBuffer) + byte,
-                 std::ostream_iterator<char>(ss)
+                 std::ostream_iterator<char>(ss),
+                 [](char i){ return i != '\0';}
              );
 
              line = ss.str();
