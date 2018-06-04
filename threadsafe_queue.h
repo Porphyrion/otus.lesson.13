@@ -1,6 +1,7 @@
 #pragma once
 
 #include <queue>
+#include <string>
 #include <memory>
 #include <mutex>
 #include <condition_variable>
@@ -25,6 +26,13 @@ public:
     void push(T new_value){
         std::lock_guard<std::mutex> lk(mut);
         dataQueue.push(new_value);
+        dataCond.notify_one();
+    };
+
+    void push(T new_value, std::string k){
+        std::lock_guard<std::mutex> lk(mut);
+        dataQueue.push(new_value);
+        std::cout<<k;
         dataCond.notify_one();
     };
 

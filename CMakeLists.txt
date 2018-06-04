@@ -7,9 +7,10 @@ find_package(Threads)
 include_directories(${Boost_INCLUDE_DIR})
 
 add_library(tablemanager tablemanager.cpp)
+add_library(database database.cpp)
 add_executable(join_server main.cpp)
 
-set_target_properties(join_server tablemanager PROPERTIES
+set_target_properties(join_server database tablemanager PROPERTIES
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
         # COMPILE_DEFINITIONS BOOST_ASIO_ENABLE_HANDLER_TRACKING
@@ -17,6 +18,7 @@ set_target_properties(join_server tablemanager PROPERTIES
         )
 
 target_link_libraries(join_server
+    database
     tablemanager
     ${Boost_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}

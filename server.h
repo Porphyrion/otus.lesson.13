@@ -1,18 +1,18 @@
 #pragma once
+
 #include <algorithm>
 #include <vector>
 #include <string>
 #include <memory>
 #include <set>
 #include <thread>
-#include <deque>
 #include <utility>
+#include <deque>
 #include "tablemanager.h"
-#include "threadsafe_queue.h"
+
 
 using boost::asio::ip::tcp;
 using responses_queue = std::deque<std::string>;
-
 class session;
 class database_room
 {
@@ -40,9 +40,8 @@ private:
 class session : public std::enable_shared_from_this<session>{
 public:
     session(tcp::socket socket, database_room& room_)
-    : socket_(std::move(socket)), room(room_)
-    {
-    }
+    : socket_(std::move(socket)), room(room_), read_counter(0), write_counter(0),del(false)
+    {}
 
     void run(){
         room.join(shared_from_this());
@@ -83,11 +82,12 @@ public:
              if (!ec){
                 if(!bicycle)
                     room.deliver(line);
+                ++read_counter;
                 do_read();
              }
              else{
                 if(!bicycle && line.size()) room.deliver(line);
-                room.leave(shared_from_this());
+                else del = true;
              }
            });
      }
@@ -99,9 +99,13 @@ public:
          [this, self](boost::system::error_code ec, std::size_t ){
              if (!ec)
              {
+                ++write_counter;
                 responses.pop_front();
                 if (!responses.empty()){
                   do_write();
+                }
+                if(del){
+                    if(write_counter == read_counter) room.leave(shared_from_this());
                 }
              }
          });
@@ -112,6 +116,9 @@ private:
     boost::asio::streambuf sb;
     database_room& room;
     responses_queue responses;
+    int read_counter;
+    int write_counter;
+    bool del;
 };
 
 
