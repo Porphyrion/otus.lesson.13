@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-project(join_server) # VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
+project(join_server VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
 
 find_package(Boost COMPONENTS system REQUIRED)
 find_package(Threads)
@@ -10,7 +10,7 @@ add_library(tablemanager tablemanager.cpp)
 add_library(database database.cpp)
 add_executable(join_server main.cpp)
 
-set_target_properties(join_server database tablemanager PROPERTIES
+set_target_properties(join_server  tablemanager database  PROPERTIES
         CXX_STANDARD 14
         CXX_STANDARD_REQUIRED ON
         # COMPILE_DEFINITIONS BOOST_ASIO_ENABLE_HANDLER_TRACKING
@@ -18,8 +18,8 @@ set_target_properties(join_server database tablemanager PROPERTIES
         )
 
 target_link_libraries(join_server
-    database
     tablemanager
+    database
     ${Boost_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
 )
