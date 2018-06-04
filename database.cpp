@@ -29,9 +29,6 @@ void Database::intersection(){
 void Database::symmetric_difference(){
     std::string response = "";
     std::shared_lock<std::shared_timed_mutex> lock(mut);
-    while(true){
-        int x;
-    }
 
     auto first_A = tables["A"].begin(); auto last_A = tables["A"].end();
     auto first_B = tables["B"].begin(); auto last_B = tables["B"].end();
