@@ -1,8 +1,9 @@
 cmake_minimum_required(VERSION 3.9)
 
-project(join_server VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
+project(join_server) # VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
 
 find_package(Boost COMPONENTS system REQUIRED)
+find_package(Threads)
 include_directories(${Boost_INCLUDE_DIR})
 
 add_library(tablemanager tablemanager.cpp)
@@ -18,6 +19,7 @@ set_target_properties(join_server tablemanager PROPERTIES
 target_link_libraries(join_server
     tablemanager
     ${Boost_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
 )
 
 install(TARGETS join_server RUNTIME DESTINATION bin)

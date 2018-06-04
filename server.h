@@ -4,9 +4,11 @@
 #include <string>
 #include <memory>
 #include <set>
+#include <thread>
 #include <deque>
 #include <utility>
 #include "tablemanager.h"
+#include "threadsafe_queue.h"
 
 using boost::asio::ip::tcp;
 using responses_queue = std::deque<std::string>;
@@ -17,8 +19,7 @@ class database_room
     using session_ptr = std::shared_ptr<session>;
 
 public:
-
-    database_room(){}
+    database_room();
 
     void leave(session_ptr participant){
         participants.erase(participant);
@@ -28,13 +29,12 @@ public:
         participants.emplace(participant);
     }
 
-    void deliver(std::string& msg );
+    void deliver(std::string& msg);
 
 private:
-
     std::set<session_ptr> participants;
-    responses_queue recent_msgs_;
     TableManager tm;
+    std::vector<std::thread> vt;
 };
 
 class session : public std::enable_shared_from_this<session>{
@@ -80,14 +80,14 @@ public:
              sb.consume(byte);
 
              auto bicycle = std::all_of(line.begin(), line.end(), [](char c){return c == '\0';});
-             if (!ec && !bicycle){
-                room.deliver(line);
+             if (!ec){
+                if(!bicycle)
+                    room.deliver(line);
                 do_read();
              }
              else{
-                 if(ec.value() == 2 || bicycle) {
-                     room.leave(shared_from_this());
-                 }
+                if(!bicycle && line.size()) room.deliver(line);
+                room.leave(shared_from_this());
              }
            });
      }
@@ -116,10 +116,17 @@ private:
 
 
 void database_room::deliver(std::string& msg){
-    std::string response = tm.parsing(msg);
-    recent_msgs_.push_back(response);
-    for(auto participant: participants)
-        participant->deliver(response);
+    tm.parsing(msg);
+}
+
+database_room::database_room(){
+    vt.push_back(std::thread([this](){
+            std::string response;
+            while(tm.responses_queue.wait_and_pop(response)){
+                for(auto participant: participants)
+                    participant->deliver(response);
+            }
+        }));
 }
 
 
