@@ -25,9 +25,9 @@ public:
         ifADelete = true;
     };
 
-    void delB{
+    void delB(){
         ifBDelete = true;
-    }
+    };
 
     void insert(std::string tableName, int id, std::string name);
     void truncate(std::string tableName);

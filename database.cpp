@@ -72,7 +72,6 @@ bool Database::findTables(){
 };
 
 bool Database::findTable(std::string tableName){
-    std::cout<<tableName;
     std::shared_lock<std::shared_timed_mutex> lock(mut);
     return tables.find(tableName) != tables.end();
 };
