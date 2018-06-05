@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.9)
 
-project(join_server)# VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
+project(join_server VERSION 0.0.$ENV{TRAVIS_BUILD_NUMBER})
 
 find_package(Boost COMPONENTS system REQUIRED)
 find_package(Threads)
