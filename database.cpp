@@ -63,7 +63,6 @@ void Database::symmetric_difference(){
 void Database::truncate(std::string tableName){
     std::unique_lock<std::shared_timed_mutex> lock(mut);
     tables.erase(tableName);
-    resQueue.push("OK\n");
 };
 
 bool Database::findTables(){

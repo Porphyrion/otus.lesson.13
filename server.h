@@ -88,8 +88,7 @@ public:
              else{
                 if(!bicycle && line.size())
                     room.deliver(line);
-                if(write_counter == read_counter)
-                    room.leave(shared_from_this());
+                end_of_session = true;
              }
            });
      }
@@ -106,7 +105,7 @@ public:
                 if (!responses.empty()){
                   do_write();
                 }
-                if(write_counter == read_counter)
+                if(write_counter == read_counter && end_of_session)
                     room.leave(shared_from_this());
              }
          });
@@ -119,6 +118,7 @@ private:
     responses_queue responses;
     int read_counter;
     int write_counter;
+    bool end_of_session{false};
 };
 
 

@@ -31,13 +31,12 @@ void TableManager::parsing(std::string& msg){
     auto i = find(commands.begin(), commands.end(), *tokens.begin());
     tokens.erase(tokens.end()-1);
     if(i != commands.end())  processing(tokens);
-    else responses_queue.push( er.message(Error::types::incorrect_command));
+    else responses_queue.push(er.message(Error::types::incorrect_command));
 };
 
 void TableManager::processing(commands_string line){
 
     auto i = line.begin();
-    //std::cout<<*i<<"\n";
     if(*i == commands[0]){
         if(line.size() < 4){
             responses_queue.push(er.message(Error::types::few_arguments));
