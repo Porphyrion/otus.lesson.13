@@ -2,7 +2,6 @@
 #include <iostream>
 #include <boost/asio.hpp>
 #include "server.h"
-//#include "table.h"
 
 int main(int argc, char const *argv[]) {
     if (argc < 2)

@@ -1,24 +1,25 @@
 #pragma once
+
 #include <algorithm>
 #include <vector>
 #include <string>
 #include <memory>
 #include <set>
-#include <deque>
+#include <thread>
 #include <utility>
+#include <deque>
 #include "tablemanager.h"
+
 
 using boost::asio::ip::tcp;
 using responses_queue = std::deque<std::string>;
-
 class session;
 class database_room
 {
     using session_ptr = std::shared_ptr<session>;
 
 public:
-
-    database_room(){}
+    database_room();
 
     void leave(session_ptr participant){
         participants.erase(participant);
@@ -28,21 +29,19 @@ public:
         participants.emplace(participant);
     }
 
-    void deliver(std::string& msg );
+    void deliver(std::string& msg);
 
 private:
-
     std::set<session_ptr> participants;
-    responses_queue recent_msgs_;
     TableManager tm;
+    std::vector<std::thread> vt;
 };
 
 class session : public std::enable_shared_from_this<session>{
 public:
     session(tcp::socket socket, database_room& room_)
-    : socket_(std::move(socket)), room(room_)
-    {
-    }
+    : socket_(std::move(socket)), room(room_), read_counter(0), write_counter(0),del(false)
+    {}
 
     void run(){
         room.join(shared_from_this());
@@ -80,14 +79,15 @@ public:
              sb.consume(byte);
 
              auto bicycle = std::all_of(line.begin(), line.end(), [](char c){return c == '\0';});
-             if (!ec && !bicycle){
-                room.deliver(line);
+             if (!ec){
+                if(!bicycle)
+                    room.deliver(line);
+                ++read_counter;
                 do_read();
              }
              else{
-                 if(ec.value() == 2 || bicycle) {
-                     room.leave(shared_from_this());
-                 }
+                if(!bicycle && line.size()) room.deliver(line);
+                else del = true;
              }
            });
      }
@@ -99,9 +99,13 @@ public:
          [this, self](boost::system::error_code ec, std::size_t ){
              if (!ec)
              {
+                ++write_counter;
                 responses.pop_front();
                 if (!responses.empty()){
                   do_write();
+                }
+                if(del){
+                    if(write_counter == read_counter) room.leave(shared_from_this());
                 }
              }
          });
@@ -112,14 +116,24 @@ private:
     boost::asio::streambuf sb;
     database_room& room;
     responses_queue responses;
+    int read_counter;
+    int write_counter;
+    bool del;
 };
 
 
 void database_room::deliver(std::string& msg){
-    std::string response = tm.parsing(msg);
-    recent_msgs_.push_back(response);
-    for(auto participant: participants)
-        participant->deliver(response);
+    tm.parsing(msg);
+}
+
+database_room::database_room(){
+    vt.push_back(std::thread([this](){
+            std::string response;
+            while(tm.responses_queue.wait_and_pop(response)){
+                for(auto participant: participants)
+                    participant->deliver(response);
+            }
+        }));
 }
 
 
