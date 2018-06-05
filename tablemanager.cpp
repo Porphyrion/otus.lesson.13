@@ -26,7 +26,7 @@ TableManager::TableManager() :
 };
 
 void TableManager::parsing(std::string& msg){
-    std::vector<std::string> tokens;
+    commands_string tokens;
     boost::split(tokens, msg, boost::is_any_of(std::set<char>{' ', '\n'}));
     auto i = find(commands.begin(), commands.end(), *tokens.begin());
     tokens.erase(tokens.end()-1);
@@ -35,57 +35,47 @@ void TableManager::parsing(std::string& msg){
 };
 
 void TableManager::processing(commands_string line){
+
     auto i = line.begin();
+    //std::cout<<*i<<"\n";
     if(*i == commands[0]){
         if(line.size() < 4){
             responses_queue.push(er.message(Error::types::few_arguments));
-            cv_res.notify_one();
         }
         else if(!db.findTable(line[1])){
              responses_queue.push(er.message(Error::types::table_not_found));
-             cv_res.notify_one();
          }
-        else if(db.findElement(line[1], std::stoi(line[2]))){
+        /*else if(db.findElement(line[1], std::stoi(line[2]))){
             responses_queue.push(er.message(Error::types::id_exist));
             cv_res.notify_one();
-        }
+        }*/
         else {
             queue.push(std::make_pair(insert_com, line));
             responses_queue.push("OK\n");
-            cv_com.notify_one();
-            cv_res.notify_one();
         }
     }else if (*i == commands[1]) {
         if(line.size() < 2 ) {
             responses_queue.push(er.message(Error::types::few_arguments));
-            cv_res.notify_one();
         }
         else if(!db.findTable(line[1])){
              responses_queue.push(er.message(Error::types::table_not_found));
-             cv_res.notify_one();
          } else {
              queue.push(std::make_pair(truncate_com, line));
              responses_queue.push("OK\n");
-             cv_com.notify_one();
-             cv_res.notify_one();
          }
     }else if (*i == commands[2]){
         if(db.findTables()){
             queue.push(std::make_pair(intersection_com, line));
-            cv_com.notify_one();
         }
         else {
             responses_queue.push(er.message(Error::types::table_not_found));
-            cv_res.notify_one();
         }
     } else if (*i == commands[3]) {
         if(db.findTables()) {
             queue.push(std::make_pair(symmetric_difference_com, line));
-            cv_com.notify_one();
         }
         else {
             responses_queue.push(er.message(Error::types::table_not_found));
-            cv_res.notify_one();
         }
     }
 };

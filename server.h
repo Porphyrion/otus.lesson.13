@@ -80,14 +80,16 @@ public:
 
              auto bicycle = std::all_of(line.begin(), line.end(), [](char c){return c == '\0';});
              if (!ec){
+                 ++read_counter;
                 if(!bicycle)
                     room.deliver(line);
-                ++read_counter;
                 do_read();
-             }
+            }
              else{
-                if(!bicycle && line.size()) room.deliver(line);
-                else del = true;
+                if(!bicycle && line.size())
+                    room.deliver(line);
+                if(write_counter == read_counter)
+                    room.leave(shared_from_this());
              }
            });
      }
@@ -104,9 +106,8 @@ public:
                 if (!responses.empty()){
                   do_write();
                 }
-                if(del){
-                    if(write_counter == read_counter) room.leave(shared_from_this());
-                }
+                if(write_counter == read_counter)
+                    room.leave(shared_from_this());
              }
          });
      }
@@ -130,6 +131,7 @@ database_room::database_room(){
     vt.push_back(std::thread([this](){
             std::string response;
             while(tm.responses_queue.wait_and_pop(response)){
+                //std::cout<<"RES "<<participants.size()<<"\n";
                 for(auto participant: participants)
                     participant->deliver(response);
             }

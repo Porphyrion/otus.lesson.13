@@ -21,13 +21,22 @@ public:
     bool findTable(std::string tableName);
     bool findElement(std::string tableName, int id);
 
+    void delA(){
+        ifADelete = true;
+    };
+
+    void delB{
+        ifBDelete = true;
+    }
+
     void insert(std::string tableName, int id, std::string name);
     void truncate(std::string tableName);
     void intersection();
     void symmetric_difference();
 
 private:
-
+    bool ifADelete{false};
+    bool ifBDelete{false};
     threadSafeQueue<std::string>& resQueue;
     mutable std::shared_timed_mutex mut;
     std::map<std::string, table> tables;

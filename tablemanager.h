@@ -25,6 +25,9 @@ private:
     };
 
     void processing(commands_string line);
+    bool check();
+    bool check(commands_string &cs);
+
 
     Error er;
     std::condition_variable cv_com;

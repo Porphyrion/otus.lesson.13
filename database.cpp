@@ -12,7 +12,7 @@ void Database::insert(std::string tableName, int id, std::string name){
 };
 
 void Database::intersection(){
-    std::string response = "";
+    std::string response;
     std::shared_lock<std::shared_timed_mutex> lock(mut);
     for(auto& i : tables["A"]){
         for(auto& j : tables["B"]){
@@ -27,7 +27,7 @@ void Database::intersection(){
 };
 
 void Database::symmetric_difference(){
-    std::string response = "";
+    std::string response;
     std::shared_lock<std::shared_timed_mutex> lock(mut);
 
     auto first_A = tables["A"].begin(); auto last_A = tables["A"].end();
@@ -72,6 +72,7 @@ bool Database::findTables(){
 };
 
 bool Database::findTable(std::string tableName){
+    std::cout<<tableName;
     std::shared_lock<std::shared_timed_mutex> lock(mut);
     return tables.find(tableName) != tables.end();
 };
