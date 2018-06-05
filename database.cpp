@@ -68,12 +68,13 @@ void Database::truncate(std::string tableName){
 
 bool Database::findTables(){
     std::shared_lock<std::shared_timed_mutex> lock(mut);
-    return (tables.find("A") != tables.end() || tables.find("B") != tables.end());
+    return (tables.find("A") != tables.end() && tables.find("B") != tables.end());
 };
 
 bool Database::findTable(std::string tableName){
     std::shared_lock<std::shared_timed_mutex> lock(mut);
-    return tables.find(tableName) != tables.end();
+    return (tables.find(tableName) != tables.end() &&
+                            deletedTables.find(tableName) == deletedTables.end());
 };
 
 bool Database::findElement(std::string tableName, int id){

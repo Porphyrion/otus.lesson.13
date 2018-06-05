@@ -40,7 +40,7 @@ private:
 class session : public std::enable_shared_from_this<session>{
 public:
     session(tcp::socket socket, database_room& room_)
-    : socket_(std::move(socket)), room(room_), read_counter(0), write_counter(0),del(false)
+    : socket_(std::move(socket)), room(room_), read_counter(0), write_counter(0)
     {}
 
     void run(){
@@ -119,7 +119,6 @@ private:
     responses_queue responses;
     int read_counter;
     int write_counter;
-    bool del;
 };
 
 
@@ -131,7 +130,6 @@ database_room::database_room(){
     vt.push_back(std::thread([this](){
             std::string response;
             while(tm.responses_queue.wait_and_pop(response)){
-                //std::cout<<"RES "<<participants.size()<<"\n";
                 for(auto participant: participants)
                     participant->deliver(response);
             }

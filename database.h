@@ -20,14 +20,9 @@ public:
     bool findTables();
     bool findTable(std::string tableName);
     bool findElement(std::string tableName, int id);
-
-    void delA(){
-        ifADelete = true;
-    };
-
-    void delB(){
-        ifBDelete = true;
-    };
+    void forwardTruncate(std::string tableName){
+        deletedTables.emplace(tableName);
+    }
 
     void insert(std::string tableName, int id, std::string name);
     void truncate(std::string tableName);
@@ -35,9 +30,8 @@ public:
     void symmetric_difference();
 
 private:
-    bool ifADelete{false};
-    bool ifBDelete{false};
     threadSafeQueue<std::string>& resQueue;
     mutable std::shared_timed_mutex mut;
     std::map<std::string, table> tables;
+    std::set<std::string> deletedTables;
 };

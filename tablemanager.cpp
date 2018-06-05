@@ -60,8 +60,9 @@ void TableManager::processing(commands_string line){
         else if(!db.findTable(line[1])){
              responses_queue.push(er.message(Error::types::table_not_found));
          } else {
-             queue.push(std::make_pair(truncate_com, line));
+             db.forwardTruncate(line[1]);
              responses_queue.push("OK\n");
+             queue.push(std::make_pair(truncate_com, line));
          }
     }else if (*i == commands[2]){
         if(db.findTables()){
