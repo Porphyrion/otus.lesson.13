@@ -18,7 +18,7 @@ void Database::intersection(){
         for(auto& j : tables["B"]){
             if(i.first == j.first){
                 response.append(std::to_string(i.first) + "," + i.second +
-                            "," + i.second + "\n");
+                            "," + j.second + "\n");
             }
         }
     }
@@ -44,7 +44,7 @@ void Database::symmetric_difference(){
             *first_A++;
         } else {
             if (first_B->first < first_A->first) {
-                response.append(std::to_string(first_B->first)+","+first_B->second+",\n");
+                response.append(std::to_string(first_B->first)+",,"+first_B->second+"\n");
             } else {
                 ++first_A;
             }
@@ -52,7 +52,7 @@ void Database::symmetric_difference(){
         }
     }
     while(first_B != last_B){
-        response.append(std::to_string(first_B->first)+","+first_B->second+",\n");
+        response.append(std::to_string(first_B->first)+",,"+first_B->second+"\n");
         first_B++;
     }
 
@@ -62,7 +62,7 @@ void Database::symmetric_difference(){
 
 void Database::truncate(std::string tableName){
     std::unique_lock<std::shared_timed_mutex> lock(mut);
-    tables.erase(tableName);
+    tables[tableName].clear();
 };
 
 bool Database::findTables(){
