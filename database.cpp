@@ -14,6 +14,7 @@ void Database::insert(std::string tableName, int id, std::string name){
 void Database::intersection(){
     std::string response;
     std::shared_lock<std::shared_timed_mutex> lock(mut);
+    if(!findTable("A") || !findTable("B")) {response = "OK\n"; resQueue.push(response);return;}
     for(auto& i : tables["A"]){
         for(auto& j : tables["B"]){
             if(i.first == j.first){
@@ -29,7 +30,17 @@ void Database::intersection(){
 void Database::symmetric_difference(){
     std::string response;
     std::shared_lock<std::shared_timed_mutex> lock(mut);
-
+    if(!findTable("A") && !findTable("B")) {response = "OK\n"; resQueue.push(response);return;}
+    else if(!findTable("A")) {
+        for(auto i : tables["B"])
+            response.append(std::to_string(i.first)+",,"+i.second+"\n");
+        resQueue.push(response); return;
+    }
+    else if(!findTable("A")){
+        for(auto i : tables["A"])
+            response.append(std::to_string(i.first)+",,"+i.second+"\n");
+        resQueue.push(response); return;
+    }
     auto first_A = tables["A"].begin(); auto last_A = tables["A"].end();
     auto first_B = tables["B"].begin(); auto last_B = tables["B"].end();
 
@@ -62,6 +73,7 @@ void Database::symmetric_difference(){
 
 void Database::truncate(std::string tableName){
     std::unique_lock<std::shared_timed_mutex> lock(mut);
+    deletedTables.erase(tableName);
     tables[tableName].clear();
 };
 

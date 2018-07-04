@@ -20,7 +20,7 @@ public:
             case table_not_found:
                 return "ERR Table not found, try again\n";
             case id_exist:
-                return "ERR Id already exist\n";
+                return "ERR id is already exist\n";
             default:
                 return "ERR\n";
         }

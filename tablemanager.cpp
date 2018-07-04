@@ -44,10 +44,10 @@ void TableManager::processing(commands_string line){
         else if(!db.findTable(line[1])){
              responses_queue.push(er.message(Error::types::table_not_found));
          }
-        /*else if(db.findElement(line[1], std::stoi(line[2]))){
+        else if(db.findElement(line[1], std::stoi(line[2]))){
             responses_queue.push(er.message(Error::types::id_exist));
             cv_res.notify_one();
-        }*/
+        }
         else {
             queue.push(std::make_pair(insert_com, line));
             responses_queue.push("OK\n");
